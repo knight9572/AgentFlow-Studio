@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AgentFlow Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: oklch(0.968 0.005 250);
+  --fg: oklch(0.24 0.03 258);
+  --card: oklch(1 0 0);
+  --muted: oklch(0.95 0.007 250);
+  --muted-fg: oklch(0.47 0.025 256);
+  --border: oklch(0.89 0.01 250);
+  --input: oklch(0.82 0.012 250);
+  --primary: oklch(0.5 0.2 266);
+  --primary-fg: oklch(0.99 0.003 250);
+  --tint: oklch(0.93 0.025 266);
+  --tint-fg: oklch(0.32 0.12 266);
+  --success: oklch(0.52 0.11 170);
+  --warning: oklch(0.58 0.13 70);
+  --danger: oklch(0.55 0.21 27);
+  --canvas: oklch(0.23 0.035 258);
+  --canvas-dot: oklch(0.34 0.03 258);
+  --font: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.18 0.02 258); --fg: oklch(0.94 0.008 255); --card: oklch(0.225 0.025 258);
+    --muted: oklch(0.27 0.025 258); --muted-fg: oklch(0.72 0.02 256); --border: oklch(0.32 0.025 258);
+    --input: oklch(0.4 0.025 258); --primary: oklch(0.62 0.19 266); --tint: oklch(0.3 0.06 266);
+    --tint-fg: oklch(0.88 0.06 266); --success: oklch(0.72 0.12 170); --warning: oklch(0.78 0.13 75);
+    --danger: oklch(0.7 0.18 27); --canvas: oklch(0.15 0.03 258); --canvas-dot: oklch(0.27 0.03 258);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(0.18 0.02 258); --fg: oklch(0.94 0.008 255); --card: oklch(0.225 0.025 258);
+  --muted: oklch(0.27 0.025 258); --muted-fg: oklch(0.72 0.02 256); --border: oklch(0.32 0.025 258);
+  --input: oklch(0.4 0.025 258); --primary: oklch(0.62 0.19 266); --tint: oklch(0.3 0.06 266);
+  --tint-fg: oklch(0.88 0.06 266); --success: oklch(0.72 0.12 170); --warning: oklch(0.78 0.13 75);
+  --danger: oklch(0.7 0.18 27); --canvas: oklch(0.15 0.03 258); --canvas-dot: oklch(0.27 0.03 258);
+}
+*, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 76px); }
+body { margin: 0; min-width: 320px; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+code, pre { font-family: var(--mono); }
+
+.header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: color-mix(in oklab, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.wrap { max-width: 1500px; margin: 0 auto; padding: 0 16px; }
+.header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo { width: 34px; height: 34px; border-radius: 8px; background: var(--primary); color: var(--primary-fg); display: grid; place-items: center; flex: none; }
+.brand h1 { font-size: 16px; margin: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { border: 1px solid; border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge.demo { color: var(--warning); border-color: color-mix(in oklab, var(--warning) 50%, transparent); background: color-mix(in oklab, var(--warning) 10%, transparent); }
+.badge.live { color: var(--success); border-color: color-mix(in oklab, var(--success) 45%, transparent); background: color-mix(in oklab, var(--success) 10%, transparent); }
+
+main { padding: 24px 0 40px; }
+h2.ask { font-size: 24px; line-height: 1.2; margin: 0 0 12px; font-weight: 600; }
+.ask-grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .ask-grid { grid-template-columns: minmax(0, 1fr) auto; } }
+textarea#query { width: 100%; min-height: 96px; resize: none; padding: 14px 16px; line-height: 1.5; background: var(--card); border: 1px solid var(--input); border-radius: 8px; }
+textarea#query:disabled { opacity: .65; }
+.hint { margin: 6px 0 0; font-size: 12px; color: var(--muted-fg); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; border: 1px solid var(--input); background: var(--card); padding: 0 16px; height: 36px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn:hover:not(:disabled) { background: var(--tint); color: var(--tint-fg); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); font-weight: 600; font-size: 14px; }
+.btn.primary:hover:not(:disabled) { background: color-mix(in oklab, var(--primary) 88%, black); color: var(--primary-fg); }
+.btn.run { height: 48px; padding: 0 28px; }
+@media (min-width: 1024px) { .btn.run { height: 96px; } }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 12px; }
+
+.key-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+.key-field { display: grid; gap: 6px; }
+.key-field label { font-size: 12px; font-weight: 500; color: var(--muted-fg); }
+.key-field input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); }
+
+.modes { display: inline-flex; margin-top: 12px; padding: 3px; border-radius: 10px; background: var(--muted); gap: 2px; }
+.modes button { border: 0; background: transparent; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--muted-fg); }
+.modes button[aria-pressed="true"] { background: var(--card); color: var(--fg); box-shadow: 0 1px 2px oklch(0 0 0 / .15); }
+.modes button:disabled { opacity: .5; cursor: not-allowed; }
+.notice { margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; padding: 8px 12px; border-radius: 8px; border: 1px solid; }
+.notice.warn { border-color: color-mix(in oklab, var(--warning) 45%, transparent); background: color-mix(in oklab, var(--warning) 10%, transparent); }
+.notice.err { border-color: color-mix(in oklab, var(--danger) 45%, transparent); background: color-mix(in oklab, var(--danger) 10%, transparent); color: var(--danger); }
+.notice[hidden] { display: none; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.card-head h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.card-head p { margin: 0; font-size: 12px; color: var(--muted-fg); }
+.pill { background: var(--muted); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 500; }
+
+/* ---- Graph ---- */
+.graph-scroll { overflow-x: auto; background: var(--canvas); }
+.graph { position: relative; min-width: 1180px; min-height: 300px; display: flex; align-items: center; padding: 40px 28px; background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1px); background-size: 22px 22px; }
+#edges { position: absolute; left: 0; top: 0; pointer-events: none; }
+.cols { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 40px; width: 100%; }
+.col { display: flex; flex-direction: column; justify-content: center; gap: 40px; }
+.nodewrap { position: relative; }
+.ring { display: none; position: absolute; inset: -6px; border: 2px solid oklch(0.8 0.14 266); border-radius: 14px; pointer-events: none; animation: ring 1.6s ease-out infinite; }
+[data-status="running"] .ring { display: block; }
+.node { position: relative; width: 100%; min-height: 88px; display: flex; align-items: center; gap: 12px; padding: 12px; text-align: left; background: var(--card); border: 1px solid transparent; border-radius: 10px; }
+.node:hover { box-shadow: 0 0 0 3px oklch(1 0 0 / .18); }
+.node[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 40%, transparent); }
+[data-status="running"] .node { animation: lift 1.6s ease-in-out infinite; box-shadow: 0 14px 24px -10px oklch(0.1 0.03 258 / .8); }
+.ico { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; flex: none; align-self: flex-start; background: var(--muted); color: var(--muted-fg); }
+[data-status="complete"] .ico { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+[data-status="running"] .ico { background: color-mix(in oklab, var(--primary) 16%, transparent); color: var(--primary); }
+[data-status="error"] .ico { background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--danger); }
+.txt { min-width: 0; flex: 1; display: block; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.nm { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.role { display: block; font-size: 12px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.time { display: block; height: 16px; font-family: var(--mono); font-size: 11px; color: var(--muted-fg); }
+.st { width: 16px; height: 16px; flex: none; display: grid; place-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.spin { width: 14px; height: 14px; border: 2px solid color-mix(in oklab, var(--primary) 25%, transparent); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+.pass { position: absolute; top: -9px; right: 12px; background: var(--warning); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.edge-idle { stroke: oklch(0.44 0.035 258); }
+.edge-done { stroke: oklch(0.7 0.1 170); }
+.edge-signal { stroke: oklch(0.8 0.14 266); stroke-dasharray: 4 8; stroke-width: 2.25; animation: signal .8s linear infinite; }
+@keyframes lift { 0%,100% { transform: translateY(-4px); } 50% { transform: translateY(-8px); } }
+@keyframes ring { 0% { opacity: .6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes signal { to { stroke-dashoffset: -24; } }
+@media (prefers-reduced-motion: reduce) {
+  [data-status="running"] .node { animation: none; transform: translateY(-4px); }
+  .ring, .edge-signal { animation: none; } .ring { opacity: .45; }
+  .spin { animation-duration: 2.4s; }
+}
+
+/* ---- Lower grid ---- */
+.lower { display: grid; gap: 20px; margin-top: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1100px) { .lower { grid-template-columns: 360px minmax(0, 1fr); } .inspector { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); } }
+.insp-body { padding: 16px; }
+.insp-body label { display: block; font-size: 12px; font-weight: 500; color: var(--muted-fg); margin-bottom: 6px; }
+select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); margin-bottom: 14px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--muted); border-radius: 8px; padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: transparent; border-radius: 6px; padding: 5px 4px; font-size: 13px; font-weight: 500; color: var(--muted-fg); }
+.tabs button[aria-selected="true"] { background: var(--card); color: var(--fg); box-shadow: 0 1px 2px oklch(0 0 0 / .15); }
+.panel { margin-top: 8px; min-height: 130px; max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); padding: 14px; font-size: 14px; }
+.panel pre { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted-fg); white-space: pre-wrap; word-break: break-word; }
+.panel .lbl { font-size: 12px; font-weight: 500; color: var(--muted-fg); margin: 12px 0 2px; }
+.panel ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; }
+.panel p { margin: 0; }
+.log { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.log-rows { max-height: 170px; overflow-y: auto; }
+.log-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; padding: 4px; border-radius: 4px; font-size: 12px; }
+.log-row:hover { background: var(--muted); }
+.log-row i { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.log-row.end i { background: var(--success); }
+.log-row span:last-child { font-family: var(--mono); font-size: 11px; color: var(--muted-fg); }
+
+.brief { padding: 28px 20px; display: flex; justify-content: center; min-height: 260px; }
+.prose { width: 100%; max-width: 720px; color: var(--muted-fg); line-height: 1.75; font-size: 15px; }
+.prose h2 { color: var(--fg); font-size: 24px; line-height: 1.25; margin: 0 0 16px; }
+.prose h3 { color: var(--fg); font-size: 18px; margin: 32px 0 8px; }
+.prose h4 { color: var(--fg); font-size: 15px; margin: 24px 0 4px; }
+.prose p { margin: 12px 0; }
+.prose ul, .prose ol { margin: 12px 0; padding-left: 22px; }
+.prose li { margin: 4px 0; }
+.prose strong { color: var(--fg); font-weight: 600; }
+.prose code { background: var(--muted); padding: 1px 5px; border-radius: 4px; font-size: .85em; }
+.prose blockquote { margin: 20px 0; padding: 12px 16px; border-left: 4px solid var(--primary); background: var(--tint); color: var(--tint-fg); }
+.prose blockquote p { margin: 0; }
+.tablewrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.prose th { background: var(--muted); color: var(--fg); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.prose td { padding: 8px 12px; border-top: 1px solid var(--border); vertical-align: top; }
+.empty { align-self: center; text-align: center; max-width: 340px; font-size: 12px; line-height: 1.6; color: var(--muted-fg); }
+.empty b { display: block; font-size: 14px; color: var(--fg); margin: 8px 0 2px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.follow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-fg); cursor: pointer; }
+.follow input { accent-color: var(--primary); }
+.head-right { display: flex; align-items: center; gap: 14px; }
+.now { margin: 0; padding: 8px 18px; font-size: 13px; border-bottom: 1px solid var(--border); background: var(--muted); display: flex; align-items: center; gap: 8px; min-height: 38px; }
+.glance { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
+.glance span { background: var(--muted); border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: var(--fg); }
+.viz { margin: 22px 0; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); overflow: hidden; }
+.viz-title { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--fg); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.viz-title .sub { font-weight: 400; font-size: 12px; color: var(--muted-fg); }
+.viz-body { padding: 14px; overflow-x: auto; }
+.viz svg { display: block; min-width: 680px; width: 100%; height: auto; }
+.ab { fill: var(--card); stroke: var(--input); stroke-width: 1; }
+.ab.first { fill: var(--muted); }
+.ab.last { fill: var(--tint); stroke: var(--primary); }
+.at { fill: var(--fg); font-size: 12px; font-family: var(--font); }
+.al { fill: var(--muted-fg); font-size: 11px; font-weight: 700; font-family: var(--font); }
+.ae { stroke: var(--primary); fill: none; stroke-width: 1.5; opacity: .75; }
+.cmp { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+.prose .cmp th, .prose .cmp td { padding: 8px 10px; text-align: left; border-top: 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.prose .cmp td.sc { text-align: center; font-family: var(--mono); font-weight: 500; color: var(--fg); }
+.prose .cmp tr.rec td { background: var(--tint); color: var(--tint-fg); }
+.prose .cmp tr.rec td.sc { color: var(--tint-fg); }
+.tag { display: inline-block; font-size: 10px; font-weight: 700; background: var(--primary); color: var(--primary-fg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.chip { font-size: 12px; line-height: 1.4; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--border); color: var(--fg); background: var(--card); }
+.chip.high { border-color: color-mix(in oklab, var(--success) 55%, transparent); }
+.chip.medium { border-color: color-mix(in oklab, var(--warning) 55%, transparent); }
+.chip.low { border-color: color-mix(in oklab, var(--danger) 55%, transparent); }
+.kv { font-size: 12px; font-weight: 700; color: var(--muted-fg); margin: 14px 0 4px; }
+.kv:first-child { margin-top: 0; }
+.viz-body p { margin: 0 0 6px; font-size: 14px; }
+.viz-body ul { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
+dialog { width: min(760px, calc(100% - 32px)); max-height: 80vh; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--fg); padding: 20px; }
+dialog::backdrop { background: oklch(0.2 0.03 258 / .45); backdrop-filter: blur(3px); }
+dialog h3 { margin: 0 0 4px; font-size: 18px; }
+dialog p { margin: 0 0 12px; font-size: 13px; color: var(--muted-fg); }
+dialog pre { margin: 0 0 14px; padding: 14px; max-height: 50vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-size: 12px; line-height: 1.6; color: var(--muted-fg); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M12 13v2"/></svg></div>
+      <h1>AgentFlow Studio</h1>
+    </div>
+    <span id="badge" class="badge demo">Demo mode</span>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+  <section>
+    <h2 class="ask">What should the team investigate?</h2>
+    <div class="ask-grid">
+      <div>
+        <textarea id="query" maxlength="2000" aria-label="Question for the agent team"></textarea>
+        <p class="hint">Press Ctrl or Cmd + Enter to run. <span id="count"></span></p>
+      </div>
+      <button id="run" class="btn primary run"></button>
+    </div>
+    <div class="modes" role="group" aria-label="Run mode">
+      <button id="mode-demo" aria-pressed="true">Scripted demo</button>
+      <button id="mode-live" aria-pressed="false">Live with Gemini</button>
+    </div>
+    <div class="key-grid">
+      <div class="key-field">
+        <label for="gemini-key">Gemini API key</label>
+        <input id="gemini-key" type="password" autocomplete="off" placeholder="Paste your Gemini key" />
+      </div>
+      <div class="key-field">
+        <label for="tavily-key">Tavily API key</label>
+        <input id="tavily-key" type="password" autocomplete="off" placeholder="Paste your Tavily key" />
+      </div>
+    </div>
+    <p id="mode-note" class="notice warn"></p>
+    <p id="fallback-note" class="notice warn" hidden></p>
+    <p id="error" class="notice err" role="alert" hidden></p>
+  </section>
+
+  <section class="card" id="graph-card" style="margin-top:24px">
+    <div class="card-head">
+      <div><h3>Execution graph</h3><p>Researcher and Analyst work in parallel</p></div>
+      <div class="head-right">
+        <label class="follow"><input type="checkbox" id="follow" checked> Auto-follow</label>
+        <span class="pill" id="progress">0 of 6 done</span>
+      </div>
+    </div>
+    <p class="now" id="now" aria-live="polite"></p>
+    <div class="graph-scroll"><div class="graph" id="graph"><svg id="edges" aria-hidden="true"></svg><div class="cols" id="cols"></div></div></div>
+  </section>
+
+  <div class="lower">
+    <aside class="card inspector" id="inspector">
+      <div class="card-head"><div><h3>Inspector</h3><p id="evcount">0 events recorded</p></div></div>
+      <div class="insp-body">
+        <label for="agent-select">Agent</label>
+        <select id="agent-select"></select>
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tab-output" aria-selected="true" data-tab="output">Output</button>
+          <button role="tab" id="tab-state" aria-selected="false" data-tab="state">State added</button>
+          <button role="tab" id="tab-raw" aria-selected="false" data-tab="raw">Raw</button>
+        </div>
+        <div class="panel" id="panel" role="tabpanel"></div>
+        <div class="log"><label>Event log</label><div class="log-rows" id="log"><p class="hint">Events appear here as the agents work.</p></div></div>
+      </div>
+    </aside>
+
+    <section class="card" id="brief-card">
+      <div class="card-head">
+        <div><h3 style="font-size:18px">Decision brief</h3><p id="brief-meta">Appears after the Reviewer approves it.</p></div>
+        <div class="actions">
+          <button class="btn sm" id="copy" disabled>Copy Markdown</button>
+          <button class="btn sm" id="download" disabled hidden>Download .md</button>
+          <button class="btn sm" id="state-btn">Run state</button>
+        </div>
+      </div>
+      <article class="brief" id="brief"></article>
+    </section>
+  </div>
+</div>
+</main>
+
+<dialog id="state-dlg">
+  <h3>Run state</h3>
+  <p>Everything the agents added to the shared state in this run.</p>
+  <pre id="state-pre"></pre>
+  <button class="btn sm" id="state-close">Close</button>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- Definitions ---------------- */
+  var ICONS = {
+    supervisor: '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/>',
+    researcher: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    analyst: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+    "fact-checker": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    writer: '<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
+    reviewer: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>'
+  };
+  var CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Complete"><path d="M20 6 9 17l-5-5"/></svg>';
+  var ALERT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Failed"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>';
+
+  var AGENTS = [
+    { id: "supervisor", name: "Supervisor", role: "Plans the work", col: 0, desc: "Breaks the question into focused workstreams, sets the evidence standard, and defines the decision the team must produce.", handoff: "Sends scoped tasks to the Researcher and the Analyst." },
+    { id: "researcher", name: "Researcher", role: "Gathers evidence", col: 1, desc: "Collects market signals, buyer priorities, competitive patterns, and the strongest available evidence.", handoff: "Sends evidence to the Fact Checker." },
+    { id: "analyst", name: "Analyst", role: "Compares options", col: 1, desc: "Compares strategic options, tests defensibility, and turns signals into product and go-to-market implications.", handoff: "Sends ranked options and trade-offs to the Fact Checker." },
+    { id: "fact-checker", name: "Fact Checker", role: "Tests the claims", col: 2, desc: "Reads the Researcher's and Analyst's output, challenges each important claim, and labels confidence.", handoff: "Sends verified claims and caveats to the Writer." },
+    { id: "writer", name: "Writer", role: "Writes the brief", col: 3, desc: "Combines the verified streams into one direct answer with a recommendation, evidence, plan, and risks.", handoff: "Submits the brief to the Reviewer." },
+    { id: "reviewer", name: "Reviewer", role: "Approves or returns", col: 4, desc: "Checks that the brief is clear, supported, specific, and actionable before it is released.", handoff: "Approves the brief, or returns it to the Writer once for revision." }
+  ];
+  var EDGES = [["supervisor", "researcher"], ["supervisor", "analyst"], ["researcher", "fact-checker"], ["analyst", "fact-checker"], ["fact-checker", "writer"], ["writer", "reviewer"]];
+  var SAMPLE_QUERY = "Analyze the enterprise AI agent market and recommend a defensible product wedge for a seed-stage startup.";
+  var APPROVAL = 7.5, MAX_REVISIONS = 1;
+
+  var DEMO_REPORT = "# Enterprise AI agents: recommended product wedge\n\n## Executive summary\n\nThe strongest near-term opportunity for a seed-stage startup is **governed agent operations for regulated teams**: a control layer that makes every automated decision by an AI agent observable, reviewable, and reversible. The wedge is narrow on purpose. It targets one painful, budgeted problem, which is proving that agents behave safely in consequential workflows, and it builds a data asset that grows with every customer. This brief compares four candidate wedges, recommends one, shows the architecture needed to deliver it, states how much confidence each claim deserves, and lays out the first 90 days.\n\n## Scope and approach\n\nThe question asks for a defensible product wedge, not a market-size forecast. Six agents worked on it. A Supervisor split the task, a Researcher and an Analyst worked at the same time on demand signals and strategic options, a Fact Checker challenged their claims, a Writer produced this brief, and a Reviewer scored it. In this scripted demo the agent outputs are pre-written, so treat the content as an illustration of the format rather than as research.\n\n## Landscape\n\nThree shifts shape the category:\n\n- **From copilots to workflows.** Enterprises are moving from assistants that suggest text to agents that call tools and take multi-step actions, which raises the cost of a wrong action.\n- **Governance is becoming a purchase criterion.** Risk, compliance, and operations leaders increasingly sit in the buying group, and they ask for audit trails before approving a deployment.\n- **Basic orchestration is commoditizing.** Foundation model platforms are absorbing routine orchestration and tracing, so a generic agent builder competes with its own suppliers.\n\nBuyers weigh reliability, auditability, and integration depth more heavily than model novelty.\n\n## Options compared\n\nFour wedges were scored against four criteria. The scores are the team's judgement on a scale of 1 to 5, not measured data. The reliability and governance layer comes out ahead because it combines urgent pain with low exposure to platform bundling.\n\n[[comparison]]\n\n## Recommendation\n\nBuild an **agent reliability command center** for financial services and healthcare operations. Start with four capabilities: pre-production evaluation, live trace inspection, approval gates for high-risk actions, and evidence-grade audit exports. Stay neutral to models and frameworks so the product works wherever customers deploy agents. Sell prevented errors and audit readiness, not developer productivity.\n\n## Proposed architecture\n\nThe platform sits between the agents a customer already runs and the people who must answer for them. A lightweight SDK and trace collector capture every step, policy hooks enforce rules at runtime, and a control plane handles evaluation, approvals, and runtime controls. Everything lands in an evidence store that feeds dashboards and audit reports. The evidence store is the long-term moat, because it accumulates a record no single model vendor can reproduce across its competitors.\n\n[[architecture]]\n\n## Evidence and confidence\n\n- **High confidence:** enterprises prioritize governance when agents take consequential actions.\n- **High confidence:** platform vendors are bundling basic orchestration and tracing.\n- **Medium confidence:** regulated teams will pay a premium for audit-grade evidence.\n- **Not established:** any market-size or growth figure. None is quoted here because none was verified.\n\n> The defensible asset is not another agent framework. It is the operational record of how agents behave inside consequential workflows.\n\n## Sources and evidence basis\n\nThis scripted demo did not search the web or read any documents. In a live run the agents also have no retrieval, so every claim comes from model knowledge and carries a confidence label. The panel below lists what contributed to the brief and which independent sources should be checked before anyone acts on it.\n\n[[sources]]\n\n## 90-day plan\n\n| Phase | Focus | Success measure |\n| --- | --- | --- |\n| 0–30 days | Design partners | 5 workflow maps completed |\n| 31–60 days | Evaluation harness | 3 live integrations |\n| 61–90 days | Governed pilot | 1 paid production deployment |\n\n## Risks and mitigations\n\n1. **Platform vendors bundle basic observability.** Focus on cross-platform evidence, approvals, and audit exports that a single vendor will not offer for its competitors.\n2. **Enterprise security reviews slow learning.** Offer a self-hosted collector and start with design partners who already have a clear data-processing path.\n3. **Value is hard to measure.** Report prevented errors and review time saved, not developer activity.\n4. **Regulatory definitions shift.** Map features to named control frameworks and refresh the mapping every quarter.\n\n## Open questions\n\n- Which single workflow has the most expensive wrong action?\n- Who signs the budget: risk, operations, or the AI platform team?\n- Will buyers accept a hosted service, or is self-hosting a requirement from day one?\n\n## Next action\n\nInterview five regulated operations teams and select one workflow where a wrong agent action creates a measurable compliance or financial cost.";
+
+  var DEMO_VISUALS = {
+    architecture: { title: "Governed agent operations platform", layers: [
+      { name: "Customer agents", nodes: ["Internal copilots", "Vendor agent frameworks", "Custom workflows"] },
+      { name: "Capture", nodes: ["SDK and trace collector", "Policy hooks"] },
+      { name: "Control plane", nodes: ["Evaluation harness", "Approval gates", "Runtime controls"] },
+      { name: "Evidence store", nodes: ["Trace warehouse", "Audit export engine"] },
+      { name: "Outcomes", nodes: ["Risk dashboard", "Audit reports"] }
+    ], links: [] },
+    comparison: { criteria: ["Urgency of pain", "Defensibility", "Time to revenue", "Low platform risk"], recommended: "Reliability and governance layer", options: [
+      { name: "Horizontal agent builder", scores: [2, 2, 3, 1], verdict: "Crowded and exposed to platform bundling" },
+      { name: "Vertical agent for one function", scores: [3, 3, 3, 3], verdict: "Focused but needs deep workflow ownership" },
+      { name: "Reliability and governance layer", scores: [5, 4, 3, 4], verdict: "Urgent, neutral, and a natural expansion path" },
+      { name: "Agent marketplace", scores: [2, 2, 2, 2], verdict: "Slow network effects, weak early revenue" }
+    ] },
+    sources: [
+      { name: "Supervisory guidance on model and AI risk management", why: "Shows which controls regulated buyers are expected to evidence" },
+      { name: "Public filings and earnings-call remarks from large financial institutions", why: "Tests whether AI governance spend is real and growing" },
+      { name: "Independent analyst coverage of AI governance and observability tooling", why: "Checks category size and vendor positioning" },
+      { name: "Interviews with risk and operations leaders at target customers", why: "Validates pain, budget owner, and willingness to pay" },
+      { name: "Security questionnaires from design partners", why: "Reveals hosting and data-handling requirements early" }
+    ]
+  };
+
+  var DEMO = {
+    supervisor: { ms: 500, summary: "The question needs a market view and one concrete strategic choice, so the work is split into two parallel tracks (evidence and options) followed by verification.", findings: ["Decision required: choose one defensible entry wedge", "Evidence standard: buyer pain, defensibility, expansion path", "Output: recommendation, proof, 90-day plan, risks"], handoff: "Researcher maps demand while the Analyst ranks strategic options.", state: { plan: ["Map market and buyer demand", "Compare strategic wedges", "Verify claims and confidence", "Write and review the brief"] } },
+    researcher: { ms: 1000, summary: "Demand is moving from experimental copilots toward reliable, multi-step workflows. Governance and auditability are becoming purchase requirements in regulated environments.", findings: ["Workflow reliability matters more than model novelty", "Risk and operations teams influence purchase decisions", "Generic orchestration features are increasingly bundled"], handoff: "Passes buyer signals and category pressure to the Fact Checker.", state: { research: ["Shift from copilots to workflows", "Auditability is a buying criterion", "Horizontal tooling is compressing"] } },
+    analyst: { ms: 1300, summary: "Reliability infrastructure is the strongest wedge: it solves an urgent cross-platform problem and has a natural path from testing into runtime control.", findings: ["Horizontal builders face platform compression", "Vertical agents offer focus but need deep workflow ownership", "A reliability layer can stay model- and framework-neutral"], handoff: "Passes the ranked wedge and expansion logic to the Fact Checker.", state: { analysis: ["Reliability layer has the strongest expansion path", "Regulated workflows support premium pricing", "Model neutrality improves defensibility"] } },
+    "fact-checker": { ms: 800, summary: "The directional case is strong, but precise market-size figures are not supported here. The brief should carry confidence labels and no invented numbers.", findings: ["High confidence: enterprises prioritize governance", "High confidence: platforms are bundling basic orchestration", "Medium confidence: regulated teams will pay a premium"], handoff: "Passes approved claims and explicit caveats to the Writer.", state: { claims: [{ claim: "Governance demand is increasing", confidence: "high" }, { claim: "Basic orchestration is commoditizing", confidence: "high" }, { claim: "Regulated teams pay a premium", confidence: "medium" }] } },
+    writer: { ms: 1400, summary: "The evidence supports one clear recommendation: build a governed agent operations layer for regulated teams, starting with evaluation and audit evidence.", findings: ["Lead with one narrow, high-consequence workflow", "Sell prevented errors and audit readiness", "Expand from evaluation into approvals and runtime controls"], handoff: "Submits the brief to the Reviewer.", state: { report: DEMO_REPORT, visuals: DEMO_VISUALS } },
+    reviewer: { ms: 700, summary: "Approved. The brief makes a specific choice, explains why it wins, separates evidence from assumptions, and ends with an executable next step.", findings: ["Recommendation is direct and defensible", "Evidence is qualified rather than overstated", "90-day plan and risks are actionable"], handoff: "Releases the brief.", state: { review_passed: true, review_score: 9.2 } }
+  };
+
+  /* ---------------- State ---------------- */
+  var $ = function (s) { return document.querySelector(s); };
+  var downloadsNs = null;
+  var S = null, ctl = null, timer = null;
+  var geometry = [];
+  var API_KEYS = { gemini: "", tavily: "" };
+
+  function freshState(mode) {
+    var nodes = {};
+    AGENTS.forEach(function (a) { nodes[a.id] = { status: "idle", attempt: 0 }; });
+    return { mode: mode || (S && S.mode) || "demo", phase: "idle", nodes: nodes, events: [], report: "", visuals: {}, score: null, elapsed: null, error: "", selected: "supervisor", tab: "output" };
+  }
+  S = freshState("demo");
+
+  /* ---------------- Utilities ---------------- */
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function str(v) { return typeof v === "string" ? v : v == null ? "" : String(v); }
+  function arr(v) { return Array.isArray(v) ? v.map(str).filter(Boolean) : []; }
+  function agentById(id) { return AGENTS.filter(function (a) { return a.id === id; })[0]; }
+  function abortErr() { var e = new Error("Aborted"); e.name = "AbortError"; return e; }
+  function sleep(ms, signal) {
+    return new Promise(function (res, rej) {
+      if (signal.aborted) return rej(abortErr());
+      var t = setTimeout(res, ms);
+      signal.addEventListener("abort", function () { clearTimeout(t); rej(abortErr()); }, { once: true });
+    });
+  }
+
+  /* ---------------- Minimal, safe Markdown ---------------- */
+  function inline(s) {
+    return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+  }
+  function cells(line) { return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(function (c) { return c.trim(); }); }
+  function markdown(src) {
+    var lines = src.replace(/\r/g, "").split("\n"), out = [], i = 0, m;
+    while (i < lines.length) {
+      var line = lines[i];
+      if (!line.trim()) { i++; continue; }
+      if ((m = line.trim().match(/^\[\[(architecture|comparison|sources)\]\]$/))) { out.push('<div data-viz="' + m[1] + '"></div>'); i++; continue; }
+      if ((m = line.match(/^(#{1,4})\s+(.*)$/))) { var lvl = Math.min(m[1].length + 1, 4); out.push("<h" + lvl + ">" + inline(m[2]) + "</h" + lvl + ">"); i++; continue; }
+      if (/^\s*\|/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
+        var head = cells(line); i += 2; var rows = [];
+        while (i < lines.length && /^\s*\|/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+        out.push('<div class="tablewrap"><table><thead><tr>' + head.map(function (h) { return "<th>" + inline(h) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+          rows.map(function (r) { return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^\s*>/.test(line)) { var q = []; while (i < lines.length && /^\s*>/.test(lines[i])) { q.push(lines[i].replace(/^\s*>\s?/, "")); i++; } out.push("<blockquote><p>" + inline(q.join(" ")) + "</p></blockquote>"); continue; }
+      if (/^\s*[-*]\s+/.test(line)) { var li = []; while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { li.push("<li>" + inline(lines[i].replace(/^\s*[-*]\s+/, "")) + "</li>"); i++; } out.push("<ul>" + li.join("") + "</ul>"); continue; }
+      if (/^\s*\d+[.)]\s+/.test(line)) { var ol = []; while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) { ol.push("<li>" + inline(lines[i].replace(/^\s*\d+[.)]\s+/, "")) + "</li>"); i++; } out.push("<ol>" + ol.join("") + "</ol>"); continue; }
+      var p = []; while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|\s*>|\s*[-*]\s+|\s*\d+[.)]\s+|\s*\||\s*\[\[)/.test(lines[i])) { p.push(lines[i]); i++; }
+      out.push("<p>" + inline(p.join(" ")) + "</p>");
+    }
+    return out.join("\n");
+  }
+
+  /* ---------------- Build the graph ---------------- */
+  function buildGraph() {
+    var cols = $("#cols");
+    for (var c = 0; c < 5; c++) {
+      var col = document.createElement("div"); col.className = "col";
+      AGENTS.filter(function (a) { return a.col === c; }).forEach(function (a) {
+        var w = document.createElement("div"); w.className = "nodewrap"; w.dataset.id = a.id; w.dataset.status = "idle";
+        w.innerHTML = '<span class="ring"></span><button class="node" aria-pressed="false" data-id="' + a.id + '">' +
+          '<span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[a.id] + '</svg></span>' +
+          '<span class="txt"><span class="top"><span class="nm">' + a.name + '</span><span class="st"><span class="dot" aria-label="Waiting"></span></span></span>' +
+          '<span class="role">' + a.role + '</span><span class="time"></span></span></button><span class="pass" hidden></span>';
+        col.appendChild(w);
+      });
+      cols.appendChild(col);
+    }
+    var sel = $("#agent-select");
+    AGENTS.forEach(function (a) { var o = document.createElement("option"); o.value = a.id; sel.appendChild(o); });
+    cols.addEventListener("click", function (e) { var b = e.target.closest(".node"); if (b) select(b.dataset.id); });
+    if (window.ResizeObserver) new ResizeObserver(measure).observe($("#graph")); else window.addEventListener("resize", measure);
+    measure();
+  }
+
+  function measure() {
+    var g = $("#graph"), svg = $("#edges"), box = g.getBoundingClientRect();
+    svg.setAttribute("width", g.scrollWidth); svg.setAttribute("height", g.scrollHeight);
+    geometry = EDGES.map(function (e) {
+      var a = $('.nodewrap[data-id="' + e[0] + '"]').getBoundingClientRect(), b = $('.nodewrap[data-id="' + e[1] + '"]').getBoundingClientRect();
+      var x1 = a.right - box.left, y1 = a.top + a.height / 2 - box.top, x2 = b.left - box.left, y2 = b.top + b.height / 2 - box.top, dx = (x2 - x1) / 2;
+      return { from: e[0], to: e[1], d: "M" + x1 + " " + y1 + " C" + (x1 + dx) + " " + y1 + ", " + (x2 - dx) + " " + y2 + ", " + x2 + " " + y2 };
+    });
+    renderEdges();
+  }
+
+  function renderEdges() {
+    var svg = $("#edges"), html = "";
+    geometry.forEach(function (e) {
+      var f = S.nodes[e.from].status, t = S.nodes[e.to].status;
+      var cls = f === "complete" && t === "complete" ? "edge-done" : "edge-idle";
+      html += '<path class="' + cls + '" d="' + e.d + '" fill="none" stroke-width="1.75" stroke-linecap="round"/>';
+      if (f === "complete" && t === "running") html += '<path class="edge-signal" d="' + e.d + '" fill="none" stroke-linecap="round"/>';
+    });
+    svg.innerHTML = html;
+  }
+
+  /* ---------------- Rendering ---------------- */
+  function renderNode(id) {
+    var n = S.nodes[id], w = $('.nodewrap[data-id="' + id + '"]');
+    w.dataset.status = n.status;
+    w.querySelector(".st").innerHTML = n.status === "complete" ? CHECK : n.status === "running" ? '<span class="spin" aria-label="Running"></span>' : n.status === "error" ? ALERT : '<span class="dot" aria-label="Waiting"></span>';
+    w.querySelector(".time").textContent = n.status === "complete" ? n.elapsed + " ms" : n.status === "running" ? ((performance.now() - n.startedAt) / 1000).toFixed(1) + " s" : "";
+    var p = w.querySelector(".pass"); p.hidden = !(n.attempt > 1); p.textContent = "Pass " + n.attempt;
+    w.querySelector(".node").setAttribute("aria-pressed", String(S.selected === id));
+  }
+  function renderNodes() { AGENTS.forEach(function (a) { renderNode(a.id); }); renderEdges(); }
+
+  function renderProgress() {
+    var done = AGENTS.filter(function (a) { return S.nodes[a.id].status === "complete"; }).length;
+    $("#progress").textContent = done + " of " + AGENTS.length + " done";
+  }
+
+  var STATUS_WORD = { idle: "waiting", running: "running", complete: "done", error: "failed" };
+  function renderInspector() {
+    var sel = $("#agent-select");
+    AGENTS.forEach(function (a, i) { sel.options[i].textContent = a.name + " (" + STATUS_WORD[S.nodes[a.id].status] + ")"; });
+    sel.value = S.selected;
+    ["output", "state", "raw"].forEach(function (t) { $("#tab-" + t).setAttribute("aria-selected", String(S.tab === t)); });
+    var n = S.nodes[S.selected], a = agentById(S.selected), p = $("#panel");
+    if (S.tab === "state") p.innerHTML = "<pre>" + esc(JSON.stringify(n.state || {}, null, 2)) + "</pre>";
+    else if (S.tab === "raw") p.innerHTML = "<pre>" + esc(JSON.stringify(rawNode(n), null, 2)) + "</pre>";
+    else if (!n.summary) p.innerHTML = '<p style="color:var(--muted-fg)"><strong style="color:var(--fg)">' + esc(a.name) + "</strong><br>" + esc(a.desc) + '</p><p class="lbl">' + esc(a.handoff) + "</p>";
+    else p.innerHTML = "<p>" + esc(n.summary) + '</p><p class="lbl">Key findings</p><ul>' + (n.findings || []).map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + '</ul><p class="lbl">Handoff</p><p style="font-size:13px">' + esc(n.handoff || a.handoff) + "</p>";
+  }
+  function rawNode(n) { var o = {}; Object.keys(n).forEach(function (k) { if (k !== "startedAt") o[k] = n[k]; }); return o; }
+
+  function renderLog() {
+    var rows = S.events.filter(function (e) { return e.type === "node_start" || e.type === "node_end"; });
+    $("#evcount").textContent = rows.length + " events recorded";
+    var box = $("#log");
+    if (!rows.length) { box.innerHTML = '<p class="hint">Events appear here as the agents work.</p>'; return; }
+    box.innerHTML = rows.map(function (e) {
+      return '<button class="log-row ' + (e.type === "node_end" ? "end" : "") + '" data-id="' + e.id + '"><i></i><span>' + esc(agentById(e.id).name) + (e.type === "node_start" ? " started" : " finished") + (e.attempt > 1 ? " (pass " + e.attempt + ")" : "") + "</span><span>" + (e.type === "node_end" ? e.elapsed + " ms" : "") + "</span></button>";
+    }).join("");
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* ---------------- Brief visuals (drawn from structured data) ---------------- */
+  function clip(t, n) { t = str(t); return t.length > n ? t.slice(0, n - 1) + "…" : t; }
+  function wrapLabel(t, n) {
+    var words = str(t).split(/\s+/), lines = [""];
+    words.forEach(function (w) {
+      var cur = lines[lines.length - 1], next = (cur + " " + w).trim();
+      if (!cur || next.length <= n) lines[lines.length - 1] = next; else lines.push(w);
+    });
+    if (lines.length > 2) lines = [lines[0], lines.slice(1).join(" ")];
+    return lines.map(function (l) { return clip(l, n); });
+  }
+  function wordCount(md) { return (str(md).replace(/\[\[(?:architecture|comparison|sources)\]\]/g, " ").replace(/[|#>*_`]/g, " ").match(/[A-Za-z0-9][A-Za-z0-9'’.%–-]*/g) || []).length; }
+
+  function archSvg(a) {
+    if (!a || !a.layers || !a.layers.length) return '<p style="color:var(--muted-fg)">Diagram unavailable for this run.</p>';
+    var LW = 180, GAP = 70, BH = 48, BG = 12, HEAD = 30, PAD = 16, L = a.layers;
+    var maxN = Math.max.apply(null, L.map(function (l) { return l.nodes.length; }));
+    var colMax = maxN * BH + (maxN - 1) * BG;
+    var W = PAD * 2 + L.length * LW + (L.length - 1) * GAP, H = PAD * 2 + HEAD + colMax;
+    var pos = {}, parts = [], layerNodes = [];
+    L.forEach(function (l, li) {
+      var x = PAD + li * (LW + GAP), colH = l.nodes.length * BH + (l.nodes.length - 1) * BG, y0 = PAD + HEAD + (colMax - colH) / 2;
+      parts.push('<text class="al" x="' + (x + LW / 2) + '" y="' + (PAD + 12) + '" text-anchor="middle">' + esc(clip(l.name, 28)) + "</text>");
+      layerNodes[li] = [];
+      l.nodes.forEach(function (n, ni) {
+        var y = y0 + ni * (BH + BG), cls = li === 0 ? "ab first" : li === L.length - 1 ? "ab last" : "ab";
+        var lines = wrapLabel(n, 24), ty = y + BH / 2 - (lines.length - 1) * 7 + 4, node = { x: x, y: y, li: li };
+        pos[n.toLowerCase()] = node; layerNodes[li].push(node);
+        parts.push("<g><title>" + esc(n) + '</title><rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + LW + '" height="' + BH + '" rx="8"/>' +
+          lines.map(function (ln, k) { return '<text class="at" x="' + (x + LW / 2) + '" y="' + (ty + k * 14) + '" text-anchor="middle">' + esc(ln) + "</text>"; }).join("") + "</g>");
+      });
+    });
+    var links = [], seen = {};
+    function link(f, t) { if (!f || !t || t.li <= f.li) return; var k = f.x + "," + f.y + ">" + t.x + "," + t.y; if (!seen[k]) { seen[k] = 1; links.push([f, t]); } }
+    (a.links || []).forEach(function (p) { link(pos[str(p[0]).toLowerCase()], pos[str(p[1]).toLowerCase()]); });
+    if (!links.length) {
+      for (var li = 0; li < L.length - 1; li++) {
+        var A = layerNodes[li], B = layerNodes[li + 1];
+        A.forEach(function (n, k) { link(n, B[Math.min(k, B.length - 1)]); });
+        B.forEach(function (n, k) { link(A[Math.min(k, A.length - 1)], n); });
+      }
+    }
+    var edgesSvg = links.map(function (e) {
+      var x1 = e[0].x + LW, y1 = e[0].y + BH / 2, x2 = e[1].x, y2 = e[1].y + BH / 2, dx = (x2 - x1) / 2;
+      return '<path class="ae" marker-end="url(#arr)" d="M' + x1 + " " + y1 + " C" + (x1 + dx) + " " + y1 + ", " + (x2 - dx) + " " + y2 + ", " + (x2 - 1) + " " + y2 + '"/>';
+    }).join("");
+    return '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Architecture diagram: ' + esc(a.title || "proposed architecture") + '"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--primary)"/></marker></defs>' + edgesSvg + parts.join("") + "</svg>";
+  }
+
+  function compareHtml(c) {
+    if (!c || !c.options || !c.options.length || !c.criteria.length) return '<p style="color:var(--muted-fg)">Comparison unavailable for this run.</p>';
+    var totals = c.options.map(function (o) { return o.scores.reduce(function (a, b) { return a + b; }, 0); });
+    var rec = -1;
+    c.options.forEach(function (o, i) { if (c.recommended && o.name.toLowerCase() === c.recommended.toLowerCase()) rec = i; });
+    if (rec < 0) rec = totals.indexOf(Math.max.apply(null, totals));
+    var head = "<tr><th>Option</th>" + c.criteria.map(function (k) { return '<th class="sc" style="text-align:center">' + esc(k) + "</th>"; }).join("") + '<th class="sc" style="text-align:center">Total</th><th>Verdict</th></tr>';
+    var rows = c.options.map(function (o, i) {
+      return '<tr class="' + (i === rec ? "rec" : "") + '"><td><strong>' + esc(o.name) + "</strong>" + (i === rec ? '<span class="tag">Recommended</span>' : "") + "</td>" +
+        o.scores.map(function (v) { return '<td class="sc" style="background:color-mix(in oklab, var(--success) ' + Math.round(v / 5 * 45) + '%, transparent)">' + v + "</td>"; }).join("") +
+        '<td class="sc"><strong>' + totals[i] + "/" + c.criteria.length * 5 + "</strong></td><td>" + esc(o.verdict) + "</td></tr>";
+    }).join("");
+    return '<table class="cmp"><thead>' + head + "</thead><tbody>" + rows + "</tbody></table>";
+  }
+
+  function sourcesHtml() {
+    var fc = S.nodes["fact-checker"].state || {}, claims = Array.isArray(fc.claims) ? fc.claims : [], steps = [];
+    AGENTS.forEach(function (a) { var n = S.nodes[a.id]; if (n.status === "complete") steps.push(a.name + (n.attempt > 1 ? " (pass " + n.attempt + ")" : "")); });
+    var basis = S.mode === "live" ? "No web or document search was run. Everything here comes from the model's own knowledge, so treat specifics as unverified." : "Scripted demo: nothing was searched, retrieved, or measured.";
+    var h = '<div class="kv">Retrieval</div><p>' + esc(basis) + '</p><div class="kv">Stages that produced this brief</div><div class="chips">' +
+      steps.map(function (t) { return '<span class="chip">' + esc(t) + "</span>"; }).join("") + "</div>";
+    if (claims.length) {
+      h += '<div class="kv">Claims checked and their confidence</div><div class="chips">' + claims.map(function (c) {
+        var lv = str(c.confidence).toLowerCase(); if (["high", "medium", "low"].indexOf(lv) < 0) lv = "low";
+        return '<span class="chip ' + lv + '" title="' + esc(str(c.note)) + '">' + lv + ": " + esc(clip(c.claim, 90)) + "</span>";
+      }).join("") + "</div>";
+    }
+    var src = (S.visuals && S.visuals.sources) || [];
+    if (src.length) h += '<div class="kv">Check these independent sources before acting (suggestions, not consulted)</div><ul>' + src.map(function (x) { return "<li><strong>" + esc(x.name) + "</strong>" + (x.why ? ": " + esc(x.why) : "") + "</li>"; }).join("") + "</ul>";
+    return h;
+  }
+
+  function glanceHtml() {
+    var fc = S.nodes["fact-checker"].state || {}, claims = Array.isArray(fc.claims) ? fc.claims : [], n = { high: 0, medium: 0, low: 0 };
+    claims.forEach(function (c) { var l = str(c.confidence).toLowerCase(); n[l in n ? l : "low"]++; });
+    var passes = S.nodes.writer.attempt || 1;
+    return '<div class="glance"><span>' + wordCount(S.report).toLocaleString() + " words, 3 visuals</span>" +
+      (claims.length ? "<span>" + claims.length + " claims checked: " + n.high + " high, " + n.medium + " medium, " + n.low + " low</span>" : "") +
+      "<span>" + passes + " draft pass" + (passes > 1 ? "es" : "") + "</span><span>" + (S.mode === "live" ? "Live Gemini/Tavily pipeline" : "Scripted demo") + "</span></div>";
+  }
+
+  function renderBrief() {
+    var b = $("#brief");
+    if (S.report) {
+      var src = S.report;
+      ["comparison", "architecture", "sources"].forEach(function (k) { if (src.indexOf("[[" + k + "]]") < 0) src += "\n\n[[" + k + "]]"; });
+      b.innerHTML = '<div class="prose">' + glanceHtml() + markdown(src) + "</div>";
+      var V = S.visuals || {};
+      var meta = {
+        architecture: [(V.architecture && V.architecture.title) || "Proposed architecture", "Drawn from structured data", function () { return archSvg(V.architecture); }],
+        comparison: ["Options compared", "Scores 1 (weak) to 5 (strong): model judgement, not measured data", function () { return compareHtml(V.comparison); }],
+        sources: ["Sources and evidence basis", S.mode === "live" ? "Model knowledge only" : "Scripted demo", sourcesHtml]
+      };
+      b.querySelectorAll("[data-viz]").forEach(function (el) {
+        var m = meta[el.dataset.viz]; el.className = "viz";
+        el.innerHTML = '<div class="viz-title"><span>' + esc(m[0]) + '</span><span class="sub">' + esc(m[1]) + '</span></div><div class="viz-body">' + m[2]() + "</div>";
+      });
+      var bits = [wordCount(S.report).toLocaleString() + " words"];
+      if (S.elapsed) bits.push((S.elapsed / 1000).toFixed(1) + " s total");
+      if (S.score != null) bits.push("reviewer score " + S.score + "/10" + (S.mode === "demo" ? " (scripted)" : ""));
+      $("#brief-meta").textContent = bits.join(", ");
+    } else {
+      b.innerHTML = '<div class="empty"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><b>Run the workflow to get a brief</b>The agents research, compare, verify, write, and review. The approved brief (600 to 1,500 words, with an architecture diagram, an options comparison, and a sources panel) shows up here.</div>';
+      $("#brief-meta").textContent = "Appears after the Reviewer approves it.";
+    }
+    $("#copy").disabled = !S.report; $("#download").disabled = !S.report;
+  }
+
+  function getApiKeys() {
+    API_KEYS.gemini = ($("#gemini-key").value || "").trim();
+    API_KEYS.tavily = ($("#tavily-key").value || "").trim();
+    return API_KEYS;
+  }
+  function saveApiKeys() {
+    var keys = getApiKeys();
+    try { localStorage.setItem("agentflow.gemini", keys.gemini); localStorage.setItem("agentflow.tavily", keys.tavily); } catch (e) {}
+  }
+  function storedApiKey(value) {
+    var key = (value || "").trim();
+    return /^(test[-_ ]|your[-_ ]|paste[-_ ]|replace[-_ ]|placeholder)/i.test(key) ? "" : key;
+  }
+  function loadApiKeys() {
+    try {
+      $("#gemini-key").value = storedApiKey(localStorage.getItem("agentflow.gemini"));
+      $("#tavily-key").value = storedApiKey(localStorage.getItem("agentflow.tavily"));
+      saveApiKeys();
+    } catch (e) {}
+    return getApiKeys();
+  }
+  function liveReady() {
+    var keys = getApiKeys();
+    return !!keys.gemini || !!keys.tavily;
+  }
+
+  function renderControls() {
+    var running = S.phase === "running", run = $("#run");
+    run.textContent = running ? "Stop run" : S.report ? "Run again" : "Run workflow";
+    run.className = "btn run " + (running ? "" : "primary");
+    var valid = $("#query").value.trim().length >= 8;
+    run.disabled = !running && (!valid || (S.mode === "live" && !liveReady()));
+    $("#query").disabled = running;
+    $("#mode-demo").disabled = running; $("#mode-live").disabled = running || !liveReady();
+    $("#mode-demo").setAttribute("aria-pressed", String(S.mode === "demo"));
+    $("#mode-live").setAttribute("aria-pressed", String(S.mode === "live"));
+    var badge = $("#badge");
+    badge.className = "badge " + (S.mode === "live" ? "live" : "demo");
+    badge.textContent = S.mode === "live" ? (API_KEYS.gemini ? "Live: Gemini" : "Live: Tavily fallback") : "Demo mode";
+    var note = $("#mode-note");
+    if (S.mode === "demo") { note.className = "notice warn"; note.textContent = "Scripted demo: the same brief is returned whatever you ask. Add your Tavily key and optionally a Gemini key to switch to live mode."; }
+    else if (!liveReady()) { note.className = "notice warn"; note.textContent = "Live mode needs either a Gemini key or a Tavily key. Paste one above, then run."; }
+    else if (API_KEYS.gemini) { note.className = "notice warn"; note.textContent = "Live mode uses Gemini when available and Tavily as a fallback for search-backed answers."; }
+    else { note.className = "notice warn"; note.textContent = "Live mode is running with the Tavily fallback. Gemini is preferred when available, but Tavily will answer when Gemini fails."; }
+    var err = $("#error");
+    err.hidden = !(S.phase === "error"); err.textContent = S.error;
+    if (S.phase === "stopped") { err.hidden = false; err.className = "notice warn"; err.textContent = "Run stopped. Edit the question or run again."; }
+    else err.className = "notice err";
+    var fallback = $("#fallback-note");
+    fallback.hidden = !(S.mode === "live" && API_KEYS.tavily && !API_KEYS.gemini);
+    if (S.mode === "live" && API_KEYS.tavily && !API_KEYS.gemini) { fallback.textContent = "Tavily is active as the live answer source. Gemini is not configured, so the workflow is using Tavily-backed results."; fallback.className = "notice warn"; }
+    $("#count").textContent = $("#query").value.length.toLocaleString() + " / 2,000";
+  }
+
+  function renderNow() {
+    var el = $("#now"), run = AGENTS.filter(function (a) { return S.nodes[a.id].status === "running"; }).map(function (a) { return a.name; });
+    if (S.phase === "running") el.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Now running: <strong>' + esc(run.join(" and ") || "starting") + "</strong></span>";
+    else if (S.phase === "done") el.textContent = "Run complete. The brief is ready below.";
+    else if (S.phase === "error") el.textContent = "The run stopped with an error.";
+    else if (S.phase === "stopped") el.textContent = "Run stopped.";
+    else el.textContent = "Ready. Press Run workflow to start.";
+  }
+  function renderAll() { renderNodes(); renderNow(); renderProgress(); renderInspector(); renderLog(); renderBrief(); renderControls(); }
+  function select(id) { S.selected = id; AGENTS.forEach(function (a) { renderNode(a.id); }); renderInspector(); }
+
+  /* ---------------- Event handling ---------------- */
+  function emit(ev) {
+    S.events.push(ev);
+    if (ev.type === "node_start") {
+      var n = S.nodes[ev.id]; n.status = "running"; n.attempt = ev.attempt; n.startedAt = performance.now();
+      S.selected = ev.id;
+    } else if (ev.type === "node_end") {
+      S.nodes[ev.id] = { status: "complete", attempt: ev.attempt, elapsed: ev.elapsed, summary: ev.summary, findings: ev.findings, handoff: ev.handoff, state: ev.state };
+    } else if (ev.type === "run_complete") {
+      S.phase = "done"; S.report = ev.report; S.visuals = ev.visuals || {}; S.score = ev.score; S.elapsed = ev.elapsed;
+    }
+    renderAll();
+    if (ev.type === "node_start") slideTo(ev.id);
+    if (ev.type === "run_complete") tour();
+  }
+
+  /* ---------------- Orchestration ---------------- */
+  function reviewScore(r) { return typeof r.state.review_score === "number" ? r.state.review_score : 0; }
+
+  async function runWorkflow(query, mode, signal) {
+    var t0 = performance.now();
+    var impl = mode === "live" ? liveImpl(query, signal) : demoImpl(signal);
+    async function node(id, attempt, exec) {
+      if (signal.aborted) throw abortErr();
+      emit({ type: "node_start", id: id, attempt: attempt });
+      var s = performance.now(), r = await exec();
+      emit({ type: "node_end", id: id, attempt: attempt, elapsed: Math.round(performance.now() - s), summary: r.summary, findings: r.findings, handoff: r.handoff, state: r.state });
+      return r;
+    }
+    var plan = await node("supervisor", 1, function () { return impl.supervisor(); });
+    var both = await Promise.all([node("researcher", 1, function () { return impl.researcher(plan); }), node("analyst", 1, function () { return impl.analyst(plan); })]);
+    var research = both[0], analysis = both[1];
+    var checks = await node("fact-checker", 1, function () { return impl.factChecker(research, analysis); });
+    var ctx = { plan: plan, research: research, analysis: analysis, checks: checks };
+    var draft = await node("writer", 1, function () { return impl.writer(ctx); });
+    var review = await node("reviewer", 1, function () { return impl.reviewer(draft); });
+    for (var rev = 1; rev <= MAX_REVISIONS; rev++) {
+      if (reviewScore(review) >= APPROVAL) break;
+      var fb = str(review.state.review_feedback), prev = draft;
+      draft = await node("writer", rev + 1, function () { return impl.writer({ plan: plan, research: research, analysis: analysis, checks: checks, feedback: fb, previous: prev }); });
+      review = await node("reviewer", rev + 1, function () { return impl.reviewer(draft); });
+    }
+    emit({ type: "run_complete", report: str(draft.state.report), visuals: draft.state.visuals, score: reviewScore(review), elapsed: Math.round(performance.now() - t0) });
+  }
+
+  function demoImpl(signal) {
+    function scripted(id) { return async function () { await sleep(DEMO[id].ms, signal); var d = DEMO[id]; return { summary: d.summary, findings: d.findings, handoff: d.handoff, state: d.state }; }; }
+    return { supervisor: scripted("supervisor"), researcher: scripted("researcher"), analyst: scripted("analyst"), factChecker: scripted("fact-checker"), writer: scripted("writer"), reviewer: scripted("reviewer") };
+  }
+
+  /* ---- Live mode: use Gemini for the agent steps and Tavily for outside search grounding ---- */
+  var NO_WEB = "Use the supplied search results as your factual grounding when available. If a claim is not backed by a result, say so and keep confidence low. Do not invent market statistics, revenue numbers, or company names.";
+  var JSON_ONLY = "Reply with a single JSON object and nothing else.";
+  var SHAPE = 'Fields: "summary" (2 sentences, your answer in brief), "findings" (3 to 5 short strings), "handoff" (one sentence on what you pass downstream), "output" (your full working notes for the next agent, plain text).';
+
+  function extractJsonText(text) {
+    if (!text) return "{}";
+    var cleaned = text.trim();
+    var match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (match) return match[1].trim();
+    var firstBrace = cleaned.indexOf("{");
+    var lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace >= 0 && lastBrace > firstBrace) return cleaned.slice(firstBrace, lastBrace + 1);
+    return cleaned;
+  }
+
+  function normalizeSupervisorResult(data, query) {
+    var out = data && typeof data === "object" ? data : {};
+    if (!out.summary) out.summary = "The workflow will gather evidence, compare options, verify claims, and write a decision brief.";
+    if (!Array.isArray(out.findings) || !out.findings.length) out.findings = ["Define the decision", "Gather evidence", "Compare options", "Verify claims", "Write the brief"];
+    if (!out.researcher_task) out.researcher_task = "Research the market, buyer pain, and competitive signals relevant to: " + query;
+    if (!out.analyst_task) out.analyst_task = "Compare the viable strategic options and recommend the strongest product wedge for: " + query;
+    if (!Array.isArray(out.plan) || !out.plan.length) out.plan = ["Define the decision", "Research the market and buyer pain", "Compare strategic options", "Verify claims and confidence", "Write and review the brief"];
+    if (!out.output) out.output = "Supervisor plan: gather evidence, compare options, verify claims, and write a brief with a clear recommendation.";
+    return out;
+  }
+
+  function describeFailure(provider, err) {
+    var msg = (err && err.message) || String(err || "unknown error");
+    var text = msg.toLowerCase();
+    var status = err && Number(err.status);
+    if (!msg || /missing api key|no api key|not provided/i.test(msg)) {
+      return { provider: provider || "API", code: "missing_api_key", message: msg || "No API key was provided.", reason: "Missing API key." };
+    }
+    if (status === 401 || status === 403 || /401|unauthorized|invalid api key|api key is invalid|forbidden/i.test(msg) || /forbidden|denied/.test(text)) {
+      return { provider: provider || "API", code: "invalid_api_key", message: msg, reason: "Invalid or unauthorized API key." };
+    }
+    if (status === 429 || /429|rate limit|too many requests/i.test(msg) || /rate limit/.test(text)) {
+      return { provider: provider || "API", code: "rate_limited", message: msg, reason: "Rate limit reached." };
+    }
+    if (/quota|billing|daily limit|resource_exhausted/i.test(msg) || /quota/.test(text)) {
+      return { provider: provider || "API", code: "quota_exceeded", message: msg, reason: "Quota exhausted." };
+    }
+    if (/timeout|network|fetch|failed to fetch|econnrefused|connection/i.test(msg) || /network/.test(text)) {
+      return { provider: provider || "API", code: "network_error", message: msg, reason: "Network or connectivity issue." };
+    }
+    if (status >= 500) return { provider: provider || "API", code: "service_error", message: msg, reason: "Provider service is unavailable (HTTP " + status + ")." };
+    return { provider: provider || "API", code: "service_error", message: msg, reason: "Service error or malformed response." };
+  }
+
+  function searchQueryFromPrompt(prompt) {
+    var text = str(prompt);
+    var question = text.match(/Question:\s*([\s\S]*?)(?:\r?\n\s*(?:Your task|Supervisor notes|Search results|Search status|Researcher notes|Analyst notes|Plan|Brief):|$)/i);
+    var task = text.match(/Your task:\s*([^\r\n]+)/i);
+    var query = [question && question[1], task && task[1]].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+    if (!query) query = text.replace(/\s+/g, " ").trim();
+    return query.slice(0, 300);
+  }
+
+  async function browserSearchFallback(query, signal, failureInfo) {
+    var ddg = "https://api.duckduckgo.com/?q=" + encodeURIComponent(query) + "&format=json&no_redirect=1&no_html=1&skip_disambig=1";
+    var response = await fetch(ddg, { signal: signal, headers: { "User-Agent": "Mozilla/5.0" } });
+    if (!response.ok) throw { code: "browser_error", provider: "Browser", message: "Browser fallback search failed with HTTP " + response.status + "." };
+    var data = await response.json().catch(function () { return {}; });
+    var abstract = data && (data.AbstractText || data.Abstract || data.Heading) ? str(data.AbstractText || data.Abstract || data.Heading) : "";
+    var items = Array.isArray(data && data.RelatedTopics) ? data.RelatedTopics : [];
+    var answer = abstract || items.map(function (item) { return item && typeof item === "object" && item.Text ? item.Text : typeof item === "string" ? item : ""; }).filter(Boolean).slice(0, 3).join(" ") || "Public browser search did not return a clear answer.";
+    var geminiFailure = failureInfo && failureInfo.gemini ? failureInfo.gemini : null;
+    var tavilyFailure = failureInfo && failureInfo.tavily ? failureInfo.tavily : null;
+    var geminiReason = geminiFailure && geminiFailure.reason ? geminiFailure.reason : "Gemini did not return a usable result.";
+    var tavilyReason = tavilyFailure && tavilyFailure.reason ? tavilyFailure.reason : "Tavily did not return a usable result.";
+    var sources = items.filter(function (item) { return item && (item.FirstURL || item.Text); }).slice(0, 5).map(function (item) {
+      return {
+        name: str(item.Text || "Search result").replace(/\s*-\s*.*$/, "").slice(0, 120),
+        url: str(item.FirstURL || "https://duckduckgo.com"),
+        why: str(item.Text || "Public browser result")
+      };
+    });
+    if (!sources.length) sources = [{ name: "DuckDuckGo public results", url: "https://duckduckgo.com", why: "Public search fallback used because both APIs failed." }];
+    return {
+      summary: "Browser fallback report for: " + query,
+      findings: [
+        "Gemini failed because " + geminiReason + " Tavily failed because " + tavilyReason + " A public browser search fallback was used.",
+        "This report is based on publicly available search results and should be reviewed before acting.",
+        "Treat the answer as a backup draft, not as a verified source."
+      ],
+      handoff: "Uses public browser search results as the final fallback when all API sources fail.",
+      output: answer,
+      answer: answer,
+      report: answer,
+      text: answer,
+      score: 5,
+      sources: sources,
+      browserFallback: true,
+      failureMode: "browser-search"
+    };
+  }
+
+  async function callGemini(prompt, signal) {
+    var keys = getApiKeys();
+    if (!keys.gemini) {
+      if (keys.tavily) {
+        try { return await buildTavilyFallback(prompt, signal)(); } catch (fallbackErr) {
+          if (signal.aborted) throw abortErr();
+          return browserSearchFallback(prompt, signal, {
+            gemini: { reason: "Gemini API key is not configured." },
+            tavily: describeFailure("Tavily", fallbackErr)
+          });
+        }
+      }
+      throw { code: "missing_api_key", provider: "Gemini", message: "Gemini API key is missing. Paste it above to enable live mode." };
+    }
+    try {
+      var response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(keys.gemini), {
+        method: "POST",
+        signal: signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.2, topP: 0.9, maxOutputTokens: 1500, responseMimeType: "application/json" }
+        })
+      });
+      var data = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        var msg = (data && data.error && data.error.message) || "Gemini request failed.";
+        var code = (data && data.error && data.error.status) || "gemini_error";
+        throw { code: code, provider: "Gemini", message: msg };
+      }
+      var text = ((data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || []).map(function (p) { return p && p.text ? p.text : ""; }).join("");
+      if (!text) throw { code: "invalid_json", provider: "Gemini", message: "Gemini returned no text." };
+      try { return JSON.parse(extractJsonText(text)); } catch (e) {
+        throw { code: "invalid_json", provider: "Gemini", message: "Gemini returned malformed JSON: " + String(e.message || e) };
+      }
+    } catch (err) {
+      if (signal.aborted) throw abortErr();
+      var geminiFailure = describeFailure("Gemini", err);
+      if (!keys.tavily) throw { code: (err && err.code) || "gemini_error", provider: "Gemini", status: err && err.status, message: (err && err.message) || String(err || "Gemini request failed.") };
+      try { return await buildTavilyFallback(prompt, signal)(); } catch (fallbackErr) {
+        if (signal.aborted) throw abortErr();
+        return browserSearchFallback(prompt, signal, { gemini: geminiFailure, tavily: describeFailure("Tavily", fallbackErr) });
+      }
+    }
+  }
+
+  function buildTavilyFallback(prompt, signal) {
+    return async function () {
+      var keys = getApiKeys();
+      if (!keys.tavily) throw { code: "missing_api_key", provider: "Tavily", message: "Tavily API key is missing. Paste it above to enable live mode." };
+      try {
+        var response = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          signal: signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_key: keys.tavily, query: searchQueryFromPrompt(prompt), max_results: 5, include_answer: true, include_raw_content: false })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) {
+          var msg = (data && data.error) || "Tavily search failed.";
+          throw { code: "tavily_error", provider: "Tavily", message: msg };
+        }
+        var answer = str(data.answer || "").trim();
+        var results = Array.isArray(data.results) ? data.results : [];
+        var snippets = results.map(function (r) { return (r && (r.content || r.snippet || r.title)) || ""; }).filter(Boolean).slice(0, 3);
+        var base = answer || snippets.join("\n\n");
+        var summary = base.slice(0, 220) || "Tavily fallback answer generated from the latest search results.";
+        return {
+          summary: summary,
+          findings: ["Tavily fallback used because Gemini did not respond successfully.", "Search evidence was pulled from live results.", "Confidence should be treated as provisional until verified."],
+          handoff: "Uses Tavily-derived evidence to continue the workflow.",
+          output: base || "Tavily search results were used as a fallback because Gemini was unavailable.",
+          answer: base || "Tavily search results were used as a fallback because Gemini was unavailable.",
+          report: base || "Tavily search results were used as a fallback because Gemini was unavailable.",
+          text: base || "Tavily search results were used as a fallback because Gemini was unavailable.",
+          plan: ["Define the decision", "Pull the relevant evidence", "Compare the likely paths", "Write the recommendation"],
+          researcher_task: "Use the Tavily results to extract the strongest factual signals and confidence labels.",
+          analyst_task: "Compare the viable options using the Tavily evidence and call out uncertainty.",
+          claims: [{ claim: summary, confidence: "medium", note: "This claim was drawn from Tavily fallback search results because Gemini was unavailable." }],
+          score: 8,
+          feedback: "",
+          architecture: { title: "Tavily fallback summary", layers: [{ name: "Inputs", nodes: ["User question", "Search results"] }, { name: "Decision logic", nodes: ["Evidence review", "Recommendation"] }], links: [["User question", "Search results"], ["Search results", "Decision logic"]] },
+          comparison: { criteria: ["Urgency", "Defensibility", "Time to value"], options: [{ name: "Fallback route", scores: [4, 3, 4], verdict: "Useful until Gemini recovers" }], recommended: "Fallback route" },
+          sources: results.slice(0, 4).map(function (r) { return { name: str(r && r.title).slice(0, 140) || "Search result", why: str(r && (r.content || r.snippet)).slice(0, 160) || "Tavily evidence" }; })
+        };
+      } catch (err) {
+        throw { code: (err && err.code) || "tavily_error", provider: "Tavily", status: err && err.status, message: (err && err.message) || String(err || "Tavily request failed.") };
+      }
+    };
+  }
+
+  async function callTavily(query, signal) {
+    var keys = getApiKeys();
+    if (!keys.tavily) throw { code: "missing_api_key", provider: "Tavily", message: "Tavily API key is missing. Paste it above to enable live mode." };
+    try {
+      var response = await fetch("https://api.tavily.com/search", {
+        method: "POST",
+        signal: signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: keys.tavily, query: query, max_results: 5, include_answer: true, include_raw_content: false })
+      });
+      var data = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        var detail = data && (data.detail || data.error || data.message);
+        var msg = typeof detail === "string" ? detail : detail ? JSON.stringify(detail) : "Tavily search failed with HTTP " + response.status + ".";
+        throw { code: "tavily_error", provider: "Tavily", status: response.status, message: msg };
+      }
+      return data;
+    } catch (err) {
+      if (signal.aborted) throw abortErr();
+      throw { code: (err && err.code) || "tavily_error", provider: "Tavily", status: err && err.status, message: (err && err.message) || String(err || "Tavily request failed.") };
+    }
+  }
+
+  async function askJson(prompt, check, signal) {
+    var last = "";
+    var geminiFailure = null;
+    var tavilyFailure = null;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        var data = await callGemini(attempt ? prompt + "\n\nYour previous reply was invalid (" + last + "). Return only valid JSON with the requested fields." : prompt, signal);
+        if (!data || typeof data !== "object" || Array.isArray(data)) throw { code: "invalid_json", provider: "Gemini", message: "not an object" };
+        check(data);
+        return data;
+      } catch (e) {
+        if (signal.aborted) throw abortErr();
+        last = (e && e.message) || "invalid";
+        geminiFailure = describeFailure("Gemini", e);
+        var fallbackCodes = ["invalid_json", "missing_api_key", "gemini_error", "401", "403", "404", "not_found", "rate_limited", "quota_exceeded"];
+        var code = e && e.code ? String(e.code) : "";
+        if (fallbackCodes.indexOf(code) === -1 && !(code && /error|invalid|denied|failed|quota|limit|unauthorized|forbidden/i.test(code))) throw e;
+      }
+    }
+    try {
+      var fallback = await buildTavilyFallback(prompt, signal)();
+      if (fallback && typeof fallback === "object") {
+        try { check(fallback); return fallback; } catch (err) { return fallback; }
+      }
+    } catch (fallbackErr) {
+      tavilyFailure = describeFailure("Tavily", fallbackErr);
+      try {
+        var browser = await browserSearchFallback(prompt, signal, { gemini: geminiFailure, tavily: tavilyFailure });
+        return browser;
+      } catch (browserErr) {
+        throw { code: "invalid_json", provider: "Supervisor", message: "Gemini failed and Tavily fallback also failed. Browser fallback also failed: " + (browserErr && browserErr.message ? browserErr.message : "unknown browser error") };
+      }
+    }
+    throw { code: "invalid_json", provider: "Supervisor", message: "The model did not return valid JSON after two attempts (" + last + ")." };
+  }
+  function need(d, keys) { keys.forEach(function (k) { if (!str(d[k]).trim() && !(Array.isArray(d[k]) && d[k].length)) throw { code: "invalid_json", message: "missing " + k }; }); }
+  function pack(d, state) { return { summary: str(d.summary), findings: arr(d.findings).slice(0, 6), handoff: str(d.handoff), state: state }; }
+
+  function cleanMd(t) { return str(t).replace(/^\s*```(?:markdown|md)?\s*/i, "").replace(/\s*```\s*$/, "").trim(); }
+  function normViz(v) {
+    v = v || {};
+    var a = v.architecture || {}, c = v.comparison || {};
+    var layers = (Array.isArray(a.layers) ? a.layers : []).slice(0, 5).map(function (l) { return { name: str(l && l.name).slice(0, 40), nodes: arr(l && l.nodes).slice(0, 4).map(function (n) { return n.slice(0, 60); }) }; }).filter(function (l) { return l.nodes.length; });
+    var links = (Array.isArray(a.links) ? a.links : []).slice(0, 8).filter(function (p) { return Array.isArray(p) && p.length >= 2; }).map(function (p) { return [str(p[0]), str(p[1])]; });
+    var criteria = arr(c.criteria).slice(0, 5);
+    var options = (Array.isArray(c.options) ? c.options : []).slice(0, 4).map(function (o) {
+      var sc = Array.isArray(o && o.scores) ? o.scores : [];
+      return { name: str(o && o.name).slice(0, 60), scores: criteria.map(function (_, i) { return Math.max(0, Math.min(5, Math.round(Number(sc[i]) || 0))); }), verdict: str(o && o.verdict).slice(0, 120) };
+    }).filter(function (o) { return o.name; });
+    var sources = (Array.isArray(v.sources) ? v.sources : []).slice(0, 6).map(function (x) { return { name: str(x && x.name).slice(0, 140), why: str(x && x.why).slice(0, 160) }; }).filter(function (x) { return x.name; });
+    return { architecture: { title: str(a.title).slice(0, 80), layers: layers, links: links }, comparison: { criteria: criteria, options: options, recommended: str(c.recommended) }, sources: sources };
+  }
+
+  function liveImpl(query, signal) {
+    return {
+      supervisor: async function () {
+        var d = await askJson("You are the Supervisor of a six-agent team (Researcher, Analyst, Fact Checker, Writer, Reviewer). Plan the work for the user's question. " + NO_WEB + " " + JSON_ONLY + " " + SHAPE + ' Also include "plan" (3 to 6 ordered steps), "researcher_task" and "analyst_task" (one specific instruction each, so they do not overlap).\n\nQuestion:\n' + query,
+          function (x) {
+            var fixed = normalizeSupervisorResult(x, query);
+            Object.keys(fixed).forEach(function (k) { x[k] = fixed[k]; });
+            need(x, ["summary", "findings", "researcher_task", "analyst_task"]);
+          }, signal);
+        return pack(d, { plan: arr(d.plan), researcher_task: str(d.researcher_task), analyst_task: str(d.analyst_task), notes: str(d.output) });
+      },
+      researcher: async function (plan) {
+        var tavilyData;
+        var searchFailure = null;
+        try {
+          tavilyData = await callTavily(query + " " + plan.state.researcher_task, signal);
+        } catch (err) {
+          if (signal.aborted) throw abortErr();
+          searchFailure = describeFailure("Tavily", err);
+          try {
+            tavilyData = await browserSearchFallback(query + " " + plan.state.researcher_task, signal, { tavily: searchFailure });
+          } catch (browserErr) {
+            if (signal.aborted) throw abortErr();
+            tavilyData = { results: [], answer: "Live search was unavailable. Tavily: " + searchFailure.reason + " Browser search: " + ((browserErr && browserErr.message) || "not reachable") + ". No external evidence was available for this stage." };
+          }
+        }
+        var searched = Array.isArray(tavilyData && tavilyData.results) ? tavilyData.results : [];
+        var context = searched.map(function (r) { return "Title: " + (r.title || "") + "\nURL: " + (r.url || "") + "\nSnippet: " + (r.content || r.snippet || "") + "\n"; }).join("\n");
+        var d;
+        if (tavilyData && tavilyData.browserFallback) {
+          d = { summary: tavilyData.summary, findings: tavilyData.findings, handoff: tavilyData.handoff, output: str(tavilyData.output || tavilyData.answer) };
+        } else {
+          try {
+            d = await askJson("You are the Researcher. Use the search results below as primary evidence. Summarize the strongest market signals and point out which claims are confident versus weak. " + NO_WEB + " " + JSON_ONLY + " " + SHAPE + "\n\nQuestion:\n" + query + "\n\nYour task:\n" + plan.state.researcher_task + "\n\nSupervisor notes:\n" + plan.state.notes + "\n\nSearch results:\n" + context + "\n\nSearch status:\n" + (searchFailure ? "Tavily was unavailable: " + searchFailure.reason : "Tavily search completed."),
+              function (x) { need(x, ["summary", "findings", "output"]); }, signal);
+          } catch (err) {
+            if (signal.aborted) throw abortErr();
+            var modelFailure = describeFailure("Gemini", err);
+            d = {
+              summary: "Research completed with limited live processing.",
+              findings: [searchFailure ? "Tavily: " + searchFailure.reason : "Tavily search completed.", "Gemini: " + modelFailure.reason, "Any available search snippets are included; unsupported claims are not inferred."],
+              handoff: "Passes available search evidence and provider diagnostics to the Fact Checker.",
+              output: context || str(tavilyData && tavilyData.answer) || "No external search results were available. Tavily: " + (searchFailure ? searchFailure.reason : "search returned no results") + " Gemini: " + modelFailure.reason
+            };
+          }
+        }
+        if (searchFailure && d.findings) d.findings.unshift("Tavily fallback: " + searchFailure.reason);
+        return pack(d, { research: str(d.output), sources: searched.slice(0, 5), providerFailure: searchFailure });
+      },
+      analyst: async function (plan) {
+        try {
+          var d = await askJson("You are the Analyst. Compare the realistic options, state trade-offs, and rank them against the decision the user needs to make. " + NO_WEB + " " + JSON_ONLY + " " + SHAPE + "\n\nQuestion:\n" + query + "\n\nYour task:\n" + plan.state.analyst_task + "\n\nSupervisor notes:\n" + plan.state.notes,
+            function (x) { need(x, ["summary", "findings", "output"]); }, signal);
+          return pack(d, { analysis: str(d.output), browserFallback: !!d.browserFallback });
+        } catch (err) {
+          if (signal.aborted) throw abortErr();
+          var modelFailure = describeFailure("Gemini", err);
+          var fallback = null;
+          try { fallback = await browserSearchFallback(query + " " + plan.state.analyst_task, signal, { gemini: modelFailure }); } catch (browserErr) {
+            if (signal.aborted) throw abortErr();
+          }
+          var note = fallback ? str(fallback.output || fallback.answer) : "Browser search was also unavailable. No independent evidence could be retrieved.";
+          return pack({
+            summary: "Analyst completed with limited live processing.",
+            findings: ["Gemini: " + modelFailure.reason, fallback ? "Public browser search was used as a backup." : "Browser fallback could not be reached."].concat(fallback ? fallback.findings || [] : []),
+            handoff: "Passes a clearly caveated fallback analysis to the Fact Checker.",
+            output: "Analysis is provisional because the model request failed. " + note
+          }, { analysis: "Gemini: " + modelFailure.reason + "\n\n" + note, browserFallback: !!fallback });
+        }
+      },
+      factChecker: async function (research, analysis) {
+        var d = await askJson("You are the Fact Checker. Read the Researcher's and Analyst's notes. Extract the claims the recommendation depends on, challenge each one, and label confidence as high, medium, or low. Flag anything that looks like an invented figure. " + NO_WEB + " " + JSON_ONLY + " " + SHAPE + ' Also include "claims": a list of {"claim", "confidence", "note"}.\n\nQuestion:\n' + query + "\n\nResearcher notes:\n" + research.state.research + "\n\nAnalyst notes:\n" + analysis.state.analysis,
+          function (x) { need(x, ["summary", "findings", "claims"]); }, signal);
+        return pack(d, { claims: d.claims, caveats: str(d.output) });
+      },
+      writer: async function (c) {
+        var ctx = "\n\nQuestion:\n" + query + "\n\nPlan:\n" + JSON.stringify(c.plan.state.plan) + "\n\nResearch:\n" + c.research.state.research + "\n\nAnalysis:\n" + c.analysis.state.analysis + "\n\nVerified claims:\n" + JSON.stringify(c.checks.state.claims) + "\n\nCaveats:\n" + c.checks.state.caveats;
+        var rev = c.feedback ? "\n\nThis is a revision. Reviewer feedback to address:\n" + c.feedback + "\n\nPrevious draft:\n" + c.previous.state.report : "";
+        var mdPrompt = "You are the Writer. Write the final decision brief in Markdown, between 850 and 1200 words, that answers the user's question directly. Begin with an H1 title, then use exactly these H2 sections in order: Executive summary; Scope and approach; Landscape; Options compared; Recommendation; Proposed architecture; Evidence and confidence; Sources and evidence basis; 90-day plan (as a Markdown table); Risks and mitigations; Open questions; Next action. Put the line [[comparison]] alone on its own line after the intro paragraph of 'Options compared', the line [[architecture]] after the intro paragraph of 'Proposed architecture', and the line [[sources]] after the paragraph in 'Sources and evidence basis'. In that last section state honestly that no web or document search was run and the evidence is model knowledge. Use the Fact Checker's confidence labels, keep caveats visible, use only claims it did not reject, and never invent figures, quotes, or sources. " + NO_WEB + " Output Markdown only." + ctx + rev;
+        var vizPrompt = "You are the Architect. Produce structured data for three visuals that accompany a decision brief answering the question. " + JSON_ONLY + ' Shape: {"architecture":{"title":"...","layers":[{"name":"...","nodes":["2 to 4 short component labels"]}],"links":[["from label","to label"]]},"comparison":{"criteria":["3 to 5 short criteria, higher score is better"],"options":[{"name":"...","scores":[1 to 5 for each criterion],"verdict":"max 12 words"}],"recommended":"exact option name"},"sources":[{"name":"...","why":"..."}]}. Use 3 to 5 layers running left to right from inputs to outcomes, 3 to 4 options, and 4 to 6 sources. Sources must be TYPES of source or publishers worth checking next, never invented titles, URLs, or statistics. ' + NO_WEB + ctx;
+        var vizJob = c.previous ? Promise.resolve(c.previous.state.visuals) : askJson(vizPrompt, function (x) { need(x, ["architecture", "comparison"]); }, signal).then(normViz, function (e) {
+          if (e && e.code && e.code !== "invalid_json") throw e;
+          if (signal.aborted) throw abortErr();
+          return normViz({});
+        });
+        try {
+          var res = await Promise.all([callGemini(mdPrompt, signal).then(function (d) {
+            if (d && d.report) return { text: d.report };
+            if (d && d.text) return { text: d.text };
+            return { text: "# Brief\n\nDraft written." };
+          }), vizJob]);
+          var report = cleanMd(res[0].text), visuals = res[1];
+          if (wordCount(report) < 600) {
+            var more = await callGemini("Expand this decision brief to between 850 and 1200 words. Keep the same headings, tables, and the [[comparison]], [[architecture]] and [[sources]] lines exactly. Add analysis and caveats, but do not add figures, quotes, or sources that are not already supported. Output Markdown only.\n\n" + report, signal);
+            var longer = cleanMd((more && more.report) || (more && more.text) || report); if (wordCount(longer) > wordCount(report)) report = longer;
+          }
+          var heads = []; report.replace(/^##\s+(.+)$/gm, function (_, h) { heads.push(h); });
+          var first = report.split(/\n{2,}/).filter(function (b) { return b.trim() && b.charAt(0) !== "#"; })[0] || "";
+          return { summary: first.replace(/[*_`>]/g, "").slice(0, 280) || "Draft written.", findings: heads.slice(0, 6).length ? heads.slice(0, 6) : ["Draft written"], handoff: "Submits the brief to the Reviewer.", state: { report: report, visuals: visuals, words: wordCount(report) } };
+        } catch (e) {
+          if (e && e.code && e.code !== "invalid_json") throw e;
+          throw { code: "invalid_json", message: e && e.message ? e.message : "Writer output was invalid" };
+        }
+      },
+      reviewer: async function (draft) {
+        var d = await askJson('You are the Reviewer, the quality gate. Score the brief from 0 to 10 for clarity, support by evidence, specificity, and actionability. Penalize invented statistics and unqualified claims. The brief should run 600 to 1500 words; its diagram, comparison and sources panel are added separately from structured data, so do not penalise their absence. ' + JSON_ONLY + ' Fields: "summary", "findings" (3 to 5 strings), "handoff", "score" (number), "feedback" (concrete changes the Writer should make; empty string if none).\n\nQuestion:\n' + query + "\n\nBrief:\n" + draft.state.report,
+          function (x) { need(x, ["summary", "findings"]); if (isNaN(Number(x.score))) throw { code: "invalid_json", message: "score is not a number" }; }, signal);
+        var score = Math.max(0, Math.min(10, Number(d.score))), ok = score >= APPROVAL;
+        var out = pack(d, { review_score: score, review_passed: ok, review_feedback: str(d.feedback) });
+        out.handoff = ok ? "Releases the brief." : "Returns the brief to the Writer for revision.";
+        return out;
+      }
+    };
+  }
+
+  function friendly(e) {
+    var c = e && e.code;
+    var provider = (e && e.provider) ? e.provider + ": " : "";
+    var msg = (e && e.message) || "The run failed.";
+    if (c === "missing_api_key") return provider + "Missing API key. Add the key above and run again.";
+    if (c === "rate_limited") return provider + "The API rate limit was reached. Wait a moment, then run again.";
+    if (c === "invalid_json") return provider + (msg || "A reply could not be read.") + " Run again.";
+    if (c === "tavily_error" || /tavily/i.test(msg)) return provider + "Tavily rejected the request. Check the Tavily key, billing, and permissions, then try again.";
+    if (/401|unauthorized|invalid api key|api key is invalid|forbidden|403/i.test(msg)) return provider + "The API key is invalid, unauthorized, or blocked. Recheck the key and permissions, then run again.";
+    if (/429|rate limit/i.test(msg)) return provider + "The provider rate limit was reached. Wait a little and try again.";
+    if (/quota|billing/i.test(msg)) return provider + "The provider quota or billing limit was reached.";
+    return provider + msg;
+  }
+
+  /* ---------------- Auto-follow: slide the graph, then tour the results ---------------- */
+  var tourTimers = [], interrupted = false;
+  function reduced() { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  function following() { return $("#follow").checked; }
+  function slideTo(id) {
+    if (!following()) return;
+    var sc = document.querySelector(".graph-scroll"), w = document.querySelector('.nodewrap[data-id="' + id + '"]');
+    if (!sc || !w || sc.scrollWidth <= sc.clientWidth + 2) return;
+    var r = w.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+    var target = r.left - sr.left + sc.scrollLeft + r.width / 2 - sc.clientWidth / 2;
+    sc.scrollTo({ left: Math.max(0, target), behavior: reduced() ? "auto" : "smooth" });
+  }
+  function cancelTour() { tourTimers.forEach(clearTimeout); tourTimers = []; }
+  function tour() {
+    cancelTour();
+    if (!following()) return;
+    interrupted = false;
+    var steps = reduced() ? [["#brief-card", 0]] : [["#inspector", 0], ["#log", 1900], ["#brief-card", 3800]];
+    steps.forEach(function (st) {
+      tourTimers.push(setTimeout(function () {
+        if (interrupted) return;
+        var el = document.querySelector(st[0]);
+        if (el) el.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
+      }, 800 + st[1]));
+    });
+  }
+  // Any manual input hands control back to the reader immediately.
+  ["wheel", "touchstart", "keydown", "pointerdown"].forEach(function (t) {
+    window.addEventListener(t, function () { interrupted = true; cancelTour(); }, { passive: true });
+  });
+
+  /* ---------------- Controls ---------------- */
+  async function start() {
+    var q = $("#query").value.trim();
+    if (q.length < 8 || S.phase === "running") return;
+    var mode = S.mode;
+    S = freshState(mode); S.phase = "running";
+    ctl = new AbortController();
+    cancelTour();
+    var mine = ctl;
+    clearInterval(timer);
+    timer = setInterval(function () { AGENTS.forEach(function (a) { if (S.nodes[a.id].status === "running") renderNode(a.id); }); }, 100);
+    renderAll();
+    $("#graph-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      await runWorkflow(q, mode, mine.signal);
+    } catch (e) {
+      if (mine.signal.aborted && S.phase !== "running") return;
+      mine.abort();
+      AGENTS.forEach(function (a) { if (S.nodes[a.id].status === "running") S.nodes[a.id].status = "error"; });
+      S.phase = "error"; S.error = friendly(e) + " ";
+    } finally {
+      if (ctl === mine) { clearInterval(timer); }
+      renderAll();
+    }
+  }
+  function stop() {
+    if (ctl) ctl.abort();
+    cancelTour();
+    clearInterval(timer);
+    AGENTS.forEach(function (a) { if (S.nodes[a.id].status === "running") S.nodes[a.id].status = "idle"; });
+    S.phase = "stopped"; renderAll();
+  }
+  function setMode(m) { if (S.phase === "running") return; S.mode = m; renderControls(); }
+
+  function copyText(text, btn) {
+    function done() { var o = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = o; }, 1400); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, fallback); } else fallback();
+    function fallback() {
+      var t = document.createElement("textarea"); t.value = text; t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select();
+      try { if (document.execCommand("copy")) done(); } catch (e) { /* nothing more to try */ }
+      document.body.removeChild(t);
+    }
+  }
+
+  function fullState() {
+    var agentsState = {};
+    AGENTS.forEach(function (a) { if (S.nodes[a.id].state) agentsState[a.id] = S.nodes[a.id].state; });
+    return { user_query: $("#query").value, mode: S.mode, agents: agentsState, final_report: S.report || undefined, visuals: S.report ? S.visuals : undefined, review_score: S.score == null ? undefined : S.score };
+  }
+
+  /* ---------------- Wire up ---------------- */
+  buildGraph();
+  $("#query").value = SAMPLE_QUERY;
+  $("#query").addEventListener("input", renderControls);
+  $("#query").addEventListener("keydown", function (e) { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") start(); });
+  $("#run").addEventListener("click", function () { S.phase === "running" ? stop() : start(); });
+  $("#mode-demo").addEventListener("click", function () { setMode("demo"); });
+  $("#mode-live").addEventListener("click", function () { setMode("live"); });
+  $("#agent-select").addEventListener("change", function (e) { select(e.target.value); });
+  document.querySelector(".tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.tab = b.dataset.tab; renderInspector(); } });
+  $("#log").addEventListener("click", function (e) { var b = e.target.closest(".log-row"); if (b) select(b.dataset.id); });
+  $("#copy").addEventListener("click", function () { copyText(S.report, $("#copy")); });
+  $("#download").addEventListener("click", async function () {
+    if (!downloadsNs) return;
+    try { await downloadsNs.save({ filename: "agentflow-report.md", data: S.report }); } catch (e) { /* viewer declined or unavailable */ }
+  });
+  $("#state-btn").addEventListener("click", function () { $("#state-pre").textContent = JSON.stringify(fullState(), null, 2); $("#state-dlg").showModal(); });
+  $("#state-close").addEventListener("click", function () { $("#state-dlg").close(); });
+  renderAll();
+  window.addEventListener("load", measure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+
+  loadApiKeys();
+  renderControls();
+  $("#gemini-key").addEventListener("input", function () { saveApiKeys(); renderControls(); });
+  $("#tavily-key").addEventListener("input", function () { saveApiKeys(); renderControls(); });
+})();
+</script>
+</body>
+</html>
